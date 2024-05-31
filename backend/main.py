@@ -5,10 +5,26 @@
 # once in the venv install dependencies listed in requirements.txt 
 # python3 main.py (or python main.py)
 
+#operational imports
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 #FASTAPI imports
 import uvicorn
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
+
+
+#gemini/jupyter imports
+import pathlib
+import textwrap
+
+import google.generativeai as genai
+
+from IPython.display import display
+from IPython.display import Markdown
+
 
 
 #FASTAPI setup
@@ -25,29 +41,38 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+
+#API routes
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
 
 
-#gemini/jupyter imports
-import pathlib
-import textwrap
-
-import google.generativeai as genai
-
-from IPython.display import display
-from IPython.display import Markdown
-
-from google.colab import userdata
+@app.get("/submit/{input}")
+def gen_response(input:str):
+    return generateValue(input)
 
 #gemini/jupyter setup
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 
+genai.configure(api_key=GOOGLE_API_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+
+#function needed to format gemini output provided by their documentation -- DONT DELETE
 def to_markdown(text):
   text = text.replace('•', '  *')
   return Markdown(textwrap.indent(text, '> ', predicate=lambda _: True))
 
-genai.configure(api_key="AIzaSyCeR6Cm1tcR-FymIe5NB7k1kv69_xmI59Q")
+# text input -> text output using Gemini API
+def generateValue(input):
+    response = model.generate_content(input)
+    return to_markdown(response.text)
 
+
+
+#Uvicorn routing setup
 if __name__ == "__main__":
     uvicorn.run("main:app", port=5000, reload=True)
