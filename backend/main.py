@@ -52,19 +52,20 @@ def read_root():
 
 @app.get("/submit/{input}")
 def gen_response(input:str):
-    return generateValue(input)
+    print(input)
+    processedInp = "Answer with 50 words max: " + input 
+    return {"generated":generateValue(processedInp.replace("_"," "))}
 
 #gemini/jupyter setup
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 
-genai.configure(api_key=GOOGLE_API_KEY)
+genai.configure(api_key=GOOGLE_API_KEY, )
 model = genai.GenerativeModel('gemini-1.5-flash')
-
 
 #function needed to format gemini output provided by their documentation -- DONT DELETE
 def to_markdown(text):
   text = text.replace('•', '  *')
-  return Markdown(textwrap.indent(text, '> ', predicate=lambda _: True))
+  return textwrap.indent(text, '> ', predicate=lambda _: True)
 
 # text input -> text output using Gemini API
 def generateValue(input):
