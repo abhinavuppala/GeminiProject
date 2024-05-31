@@ -17,12 +17,14 @@ export default function Home() {
   let loading = false;
   
   // processing and calling our backend api
-  async function handleSubmission(event:KeyboardEvent){
+  async function handleSubmission(event: KeyboardEvent){
     if (event.keyCode === 13 && loading==false) {
         loading=true;
         event.preventDefault();
         let filteredInp =input.split(' ').join('_');
         console.log("http://127.0.0.1:5000/submit/"+filteredInp);
+
+        // make backend call, get JSON & display prompt result
         fetch("http://127.0.0.1:5000/submit/"+filteredInp).then(res=>res.json()).then(data=>{
           console.log(data);
           setResponse(data["generated"])
@@ -50,6 +52,7 @@ export default function Home() {
         <div className="rounded-xl h-1/5 pt">
           <textarea id="message" className=" h-full block p-2.5 w-full text-lg text-stone-700 rounded-lg bg-gray-200 border-2 border-xl border-gray-500 focus:border-stone-700 focus:text-stone-700 placeholder:focus:text-stone-700" placeholder="Write your thoughts here..."
             // ignore this error message below. It is due to typescript incompatability, but wont cause any bugs
+            // @ts-expect-error
             onKeyDown={(e)=>handleSubmission(e)}
             value={input}
             onChange={(e)=>{
