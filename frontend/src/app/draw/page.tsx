@@ -22,19 +22,20 @@ export default function Draw() {
           loading=true;
           event.preventDefault();
 
+          // body of POST request to send image
           const formData = new FormData();
           // @ts-expect-error
           formData.append("file", image, image.name);
           // @ts-expect-error
+          formData.append("extension", image.name.split(".").pop())
+          // @ts-expect-error
           console.log(image.name)
-
-          // formData.append("extension", image.name.split('.').pop())
-
+          
+          // make post request, and display prompt result
           const requestOptions = {
             method: "POST",
             body: formData
           };
-
           fetch("http://127.0.0.1:5000/upload/", requestOptions).then(res=>res.json()).then(data=>
           {
             console.log(data);
