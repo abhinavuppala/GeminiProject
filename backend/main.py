@@ -7,12 +7,13 @@
 
 #operational imports
 import os
+import tempfile
 from dotenv import load_dotenv
 load_dotenv()
 
 #FASTAPI imports
 import uvicorn
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -25,6 +26,9 @@ import google.generativeai as genai
 from IPython.display import display
 from IPython.display import Markdown
 
+# image processing imports
+from PIL import Image
+import io
 
 
 #FASTAPI setup
@@ -52,9 +56,30 @@ def read_root():
 
 @app.get("/submit/{input}")
 def gen_response(input:str):
+
+    # 
     print(input)
     processedInp = "Answer with 50 words max: " + input 
-    return {"generated":generateValue(processedInp.replace("_"," "))}
+    return {"generated": generateValue(processedInp.replace("_"," "))}
+
+@app.post("/upload")
+def receive_file(file: bytes = File(...)):
+
+    # , extension: str = Form(...)
+    extension = ".png"
+
+    # read bytes into temporary image file
+    path = pathlib.Path(f'./temp.{extension}')
+    with path.open('wb') as f:
+        f.write(file)
+
+    # Image.open(path).show()
+
+    # generate output from saved path image & delete temp.png
+    out = generateImageGuess(path)
+    path.unlink()
+    return {"generated": out}
+
 
 
 #gemini/jupyter setup
@@ -74,6 +99,16 @@ def generateValue(input):
     response = model.generate_content(input)
     return to_markdown(response.text)
 
+# image & premade prompt -> Gemini text output
+def generateImageGuess(img_path):
+    prompt_parts = [
+        genai.upload_file(img_path),
+        "Input: Guess what this given image is supposed to be:",
+        "Output (Answer with 50 words max): ",
+    ]
+    response = model.generate_content(prompt_parts)
+    #genai.delete_file(img_path)
+    return to_markdown(response.text)
 
 
 #Uvicorn routing setup

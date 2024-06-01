@@ -38,8 +38,16 @@ export default function Home() {
     <main className="flex h-screen flex-col items-center justify-between p-24">
       <div className="h-full z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex-col space-y-16">
         <div className = "text-3xl">
-          Gemini Project - Abi and Kyle
-        </div>  
+          Gemini Project - Abhi and Kyle
+        </div>
+
+        <button className="bg-white text-black" onClick={(e) =>
+        {
+            e.preventDefault();
+            window.open('/draw');
+        }}>
+          Try draw guessing
+        </button>
 
         {/* This code chunk is for the ai response to be displayed and flexes on overflow*/ }
         <div className="flex-col-reverse text-2xl h-3/5 overflow-y-scroll">
