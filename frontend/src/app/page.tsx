@@ -40,15 +40,6 @@ export default function Home() {
         <div className = "text-3xl">
           Gemini Project - Abhi and Kyle
         </div>
-
-        <button className="bg-white text-black" onClick={(e) =>
-        {
-            e.preventDefault();
-            window.open('/draw');
-        }}>
-          Try draw guessing
-        </button>
-
         {/* This code chunk is for the ai response to be displayed and flexes on overflow*/ }
         <div className="flex-col-reverse text-2xl h-3/5 overflow-y-scroll">
           <ReactMarkdown>
