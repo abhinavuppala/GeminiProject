@@ -56,17 +56,12 @@ def read_root():
 
 @app.get("/submit/{input}")
 def gen_response(input:str):
-
-    # 
     print(input)
     processedInp = "Answer with 50 words max: " + input 
     return {"generated": generateValue(processedInp.replace("_"," "))}
 
 @app.post("/upload")
-def receive_file(file: bytes = File(...)):
-
-    # , extension: str = Form(...)
-    extension = ".png"
+def receive_file(file: bytes = File(...), extension: str = ".png"):
 
     # read bytes into temporary image file
     path = pathlib.Path(f'./temp.{extension}')
