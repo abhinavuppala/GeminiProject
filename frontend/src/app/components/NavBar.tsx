@@ -10,8 +10,9 @@ const NavBar = () => {
         {label: 'Home', href:"/"},
         {label: 'Draw', href:"/draw"},
     ]
+    
   return (
-    <nav className="flex py-4 px-5 h-22 w-full justify-between bg-black">
+    <div className="flex py-4 px-5 h-22 w-full justify-between bg-black">
         <div className="flex items-center justify-center lg:justify-start w-full">
             <ul className="flex space-x-4 md:space-x-8 text-lg md:text-2xl text-white">
                 {links.map(link => 
@@ -22,7 +23,7 @@ const NavBar = () => {
                 </Link>)}
             </ul>
         </div>
-    </nav>
+    </div>
   )
 }
 export default NavBar
