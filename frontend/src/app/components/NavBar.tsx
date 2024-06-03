@@ -6,8 +6,11 @@ import { usePathname } from 'next/navigation'
 
 const NavBar = () => {
     const currentPath=usePathname();
+    // to add more items to the Navbar simply add a dictionary entry, the Label is how it appears and the href is the local link
+    // the href must match the folder name that the page.tsx exists in
     const links=[
         {label: 'Home', href:"/"},
+        {label:'Text',href:"/text"},
         {label: 'Draw', href:"/draw"},
     ]
     
