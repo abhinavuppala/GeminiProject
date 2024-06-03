@@ -1,12 +1,13 @@
-'use client'
+"use client";
 import Image from "next/image";
-import React, { useState,useEffect,useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import ReactMarkdown from 'react-markdown';
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import ReactMarkdown from "react-markdown";
 
-import * as THREE from 'three'
-import landingScene from "./landingScene"
+import * as THREE from "three";
+import landingScene from "./landingScene";
 export default function Home() {
+  // setting a reference to the DOM element of our canvas for threejs
   const mountRef = useRef(null);
   const [windowSize, setWindowSize] = useState({
     width: 0,
@@ -14,7 +15,7 @@ export default function Home() {
   });
 
   const router = useRouter(); // Initialize the router hook
-
+  // useEffect hook ensures threejs canvas is not preloaded before the React component is rendered
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({
@@ -27,24 +28,30 @@ export default function Home() {
     handleResize();
 
     // Add resize event listener
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
-
-    const handleKeyDown = (event:KeyboardEvent) => {
-      if (['ArrowUp', 'ArrowDown',].includes(event.key) || (event.key=="Space"&&event.target==document.body)) {
+    // block default value for down/up arrow, and spacebar since the interactive page uses those as controls
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        ["ArrowUp", "ArrowDown"].includes(event.key) ||
+        (event.key == "Space" && event.target == document.body)
+      ) {
         event.preventDefault();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    // prevent memory leaks by emptying event listeners after
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
       // Clean up event listener
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
   useEffect(() => {
-    if (!mountRef.current || windowSize.width === 0 || windowSize.height === 0) return;
+    // this conditional basically returns if the window hasn't rendered yet.
+    if (!mountRef.current || windowSize.width === 0 || windowSize.height === 0)
+      return;
 
     // Setup Three.js scene
     const width = windowSize.width;
@@ -53,15 +60,20 @@ export default function Home() {
       canvas: mountRef.current,
     });
     renderer.setSize(width, height);
-    console.log(width,height);
+    console.log(width, height);
 
-    const mainCamera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
+    // set up the camera and create a landingScene instance (see landingScene.ts for class implementation)
+    const mainCamera = new THREE.PerspectiveCamera(
+      60,
+      width / height,
+      0.1,
+      500,
+    );
     const scene = new landingScene(mainCamera, handleObjectClick);
-    scene.background = new THREE.Color( 0xFFFFFF );
+    scene.background = new THREE.Color(0x000000);
 
-    scene.initialize(); 
-    // Example geometry and material
-    
+    scene.initialize();
+
     // Animation loop
     const animate = () => {
       scene.update();
@@ -78,12 +90,12 @@ export default function Home() {
 
   // callback function
   const handleObjectClick = () => {
-    router.push('/text'); 
-  }
+    router.push("/text");
+  };
 
   return (
     <main className="flex h-screen flex-col items-center justify-between">
-      <canvas id = "app" ref={mountRef}></canvas>
+      <canvas id="app" ref={mountRef}></canvas>
     </main>
-  )
+  );
 }
