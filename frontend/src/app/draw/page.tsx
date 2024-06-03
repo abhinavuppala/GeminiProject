@@ -9,7 +9,7 @@ export default function Draw() {
   
     // React hooks for temp input prompt
     let [response, setResponse] = useState("");
-    let [image, setImage] = useState(null);
+    let [image, setImage] = useState<File | null>(null);
     const GUESS_PROMPT = "Guess what this given image is supposed to be:";
   
     let loading = false;
@@ -24,11 +24,8 @@ export default function Draw() {
 
           // body of POST request to send image
           const formData = new FormData();
-          // @ts-expect-error
           formData.append("file", image, image.name);
-          // @ts-expect-error
-          formData.append("extension", image.name.split(".").pop())
-          // @ts-expect-error
+          formData.append("extension", image.name.split(".").pop()||"");
           console.log(image.name)
           
           // make post request, and display prompt result

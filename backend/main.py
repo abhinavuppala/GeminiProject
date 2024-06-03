@@ -2,6 +2,7 @@
 # you will need to start a python venv to run the modules 
 # Google how to create one if you haven't, and each time run:
 # source .venv/bin/activate
+# note: sometimes have to run . .venv/bin/activate Unsure why?
 # once in the venv install dependencies listed in requirements.txt 
 # python3 main.py (or python main.py)
 
@@ -15,6 +16,7 @@ load_dotenv()
 import uvicorn
 from fastapi import FastAPI, status, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 
 #gemini/jupyter imports
@@ -61,19 +63,26 @@ def gen_response(input:str):
     return {"generated": generateValue(processedInp.replace("_"," "))}
 
 @app.post("/upload")
-def receive_file(file: bytes = File(...), extension: str = ".png"):
+async def receive_file(file: UploadFile = File(...), extension: str = Form(...)):
+    try:
+        file_extension = extension.lower()
+        if file_extension not in ['png', 'jpg', 'jpeg']:
+            return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": "Unsupported file extension"})
 
-    # read bytes into temporary image file
-    path = pathlib.Path(f'./temp.{extension}')
-    with path.open('wb') as f:
-        f.write(file)
+        # Save the uploaded file to a temporary location
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f".{file_extension}") as temp_file:
+            contents = await file.read()
+            temp_file.write(contents)
+            temp_file_path = pathlib.Path(temp_file.name)
 
-    # Image.open(path).show()
+        # Generate output from the saved image and delete the temporary file
+        out = generateImageGuess(temp_file_path)
+        temp_file_path.unlink()
+        return {"generated": out}
 
-    # generate output from saved path image & delete temp.png
-    out = generateImageGuess(path)
-    path.unlink()
-    return {"generated": out}
+    except Exception as e:
+        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content={"message": str(e)})
+
 
 
 
