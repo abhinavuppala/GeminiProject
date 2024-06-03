@@ -1,12 +1,16 @@
 "use client";
 import * as THREE from "three";
 import { useRouter } from "next/router"; // Import Next.js router
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { mx_bits_to_01 } from "three/examples/jsm/nodes/materialx/lib/mx_noise.js";
 
 export default class landingScene extends THREE.Scene {
   private readonly keyDown = new Set<string>();
   private readonly camera: THREE.PerspectiveCamera;
   private directionVector = new THREE.Vector3();
   private readonly triggers = new Set<THREE.Mesh>();
+  private readonly choices = new Set<THREE.Mesh>();
   //@ts-expect-error
   private readonly handleObjectClick: () => void; // Callback function type
 
@@ -16,6 +20,8 @@ export default class landingScene extends THREE.Scene {
 
     this.camera = camera;
     this.triggers.clear();
+    this.choices.clear()
+
     this.handleObjectClick = handleObjectClick; // Assign the callback function
 
   }
@@ -24,18 +30,108 @@ export default class landingScene extends THREE.Scene {
 
     // is there a way to minimize repeated code here for the 4 cubes?
     // look into either a class or a function
-    const geometry = new THREE.BoxGeometry();
+    const targetPosition = new THREE.Vector3(0, 0, 0); // The target point to face towards
+    
+    const loader = new FontLoader();
+    loader.load( '/fonts/helvetiker_regular.typeface.json',  ( font ) => {
+      
+
+      const textGeo1 = new TextGeometry( 'Option 1', {
+        font: font,
+        size: 200,
+        depth: 5,
+        curveSegments: 12,
+        bevelEnabled: true,
+        bevelThickness: 10,
+        bevelSize: 8,
+        bevelOffset: 0,
+        bevelSegments: 5,
+
+      } );
+			const textMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff});
+			const mesh = new THREE.Mesh( textGeo1, textMaterial );
+      mesh.scale.set(0.001, 0.001, 0.001);
+			mesh.position.x = 23;
+			mesh.position.y = 0.25;
+      mesh.position.z=-0.5;
+      this.choices.add(mesh);
+			this.add( mesh );
+
+      const textGeo2 = new TextGeometry( 'Option 2', {
+        font: font,
+        size: 200,
+        depth: 5,
+        curveSegments: 12,
+        bevelEnabled: true,
+        bevelThickness: 10,
+        bevelSize: 8,
+        bevelOffset: 0,
+        bevelSegments: 5,
+
+      } );
+			const mesh2 = new THREE.Mesh( textGeo2, textMaterial );
+      mesh2.scale.set(0.001, 0.001, 0.001);
+			mesh2.position.x = -23;
+			mesh2.position.y = 0.25;
+      mesh2.position.z=0.5;
+      this.choices.add(mesh2);
+			this.add( mesh2 );
+
+      const textGeo3 = new TextGeometry( 'Option 3', {
+        font: font,
+        size: 200,
+        depth: 5,
+        curveSegments: 12,
+        bevelEnabled: true,
+        bevelThickness: 10,
+        bevelSize: 8,
+        bevelOffset: 0,
+        bevelSegments: 5,
+
+      } );
+			const mesh3 = new THREE.Mesh( textGeo3, textMaterial );
+      mesh3.scale.set(0.001, 0.001, 0.001);
+			mesh3.position.x = 0.5;
+			mesh3.position.y = 0.25;
+      mesh3.position.z=23;
+      this.choices.add(mesh3);
+			this.add( mesh3 );
+
+      const textGeo4 = new TextGeometry( 'Option 4', {
+        font: font,
+        size: 200,
+        depth: 5,
+        curveSegments: 12,
+        bevelEnabled: true,
+        bevelThickness: 10,
+        bevelSize: 8,
+        bevelOffset: 0,
+        bevelSegments: 5,
+
+      } );
+			const mesh4 = new THREE.Mesh( textGeo4, textMaterial );
+      mesh4.scale.set(0.001, 0.001, 0.001);
+			mesh4.position.x = -0.5;
+			mesh4.position.y = 0.25;
+      mesh4.position.z=-23;
+      this.choices.add(mesh4);
+			this.add( mesh4 );
+
+    } );
+
+    const geometry = new THREE.BoxGeometry();   
     const material = new THREE.MeshBasicMaterial({ color: 0xff00ff });
     const cube = new THREE.Mesh(geometry, material);
-    cube.position.z = -10;
+    cube.position.z = -25;
     cube.position.y = 0.25;
     cube.position.x = 0;
     this.add(cube);
     this.triggers.add(cube);
 
+
     const material2 = new THREE.MeshBasicMaterial({ color: 0x0000ff });
     const cube2 = new THREE.Mesh(geometry, material2);
-    cube2.position.z = 10;
+    cube2.position.z = 25;
     cube2.position.y = 0.25;
     cube2.position.x = 0;
     this.add(cube2);
@@ -45,7 +141,7 @@ export default class landingScene extends THREE.Scene {
     const cube3 = new THREE.Mesh(geometry, material3);
     cube3.position.z = 0;
     cube3.position.y = 0.25;
-    cube3.position.x = -10;
+    cube3.position.x = -25;
     this.add(cube3);
     this.triggers.add(cube3);
 
@@ -53,7 +149,7 @@ export default class landingScene extends THREE.Scene {
     const cube4 = new THREE.Mesh(geometry, material4);
     cube4.position.z = 0;
     cube4.position.y = 0.25;
-    cube4.position.x = 10;
+    cube4.position.x = 25;
     this.add(cube4);
     this.triggers.add(cube4);
 
@@ -195,8 +291,36 @@ export default class landingScene extends THREE.Scene {
       value.rotation.z+=0.02;
     })
   }
+
+  private updateTextRotation() {
+    this.choices.forEach((value:THREE.Mesh)=>{
+      const direction = new THREE.Vector3().subVectors(this.camera.position, value.position);    
+      // quaternion is calc concept relating to essentially a 3d rotation
+      value.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction.normalize());
+    })
+  }
+
+  private moveSquaresAndTexts(){
+    let speed = 0.005;
+    this.choices.forEach((value:THREE.Mesh)=>{
+      const dir = new THREE.Vector3().subVectors(this.camera.position, value.position);    
+      value.position.add(dir.clone().multiplyScalar(speed));
+    })
+    this.triggers.forEach((value:THREE.Mesh)=>{
+      const dir = new THREE.Vector3().subVectors(this.camera.position, value.position);    
+      value.position.add(dir.clone().multiplyScalar(speed));
+      const distance = this.camera.position.distanceTo(value.position);
+      if(distance<1){
+        console.log('game over')
+        this.handleObjectClick();
+      }
+
+    })
+  }
   update() {
     this.updateInput();
     this.updateSquares();
+    this.updateTextRotation();
+    this.moveSquaresAndTexts();
   }
 }
