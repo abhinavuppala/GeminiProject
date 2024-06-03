@@ -107,6 +107,7 @@ export default class landingScene extends THREE.Scene {
 			)
 		}
 	}
+	// ignore this error for now, component compiles I will fix later
 	private handleObjectClick = (event: MouseEvent) => {
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
