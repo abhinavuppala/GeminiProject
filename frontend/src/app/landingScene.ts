@@ -20,6 +20,9 @@ export default class landingScene extends THREE.Scene {
   private readonly choices = new Set<THREE.Mesh>();
   private readonly mtlLoader = new MTLLoader();
   private readonly objLoader = new OBJLoader();
+  private readonly audioLoader = new THREE.AudioLoader();
+  private sound?: THREE.Audio;
+
   private solution?:THREE.Mesh;
   private projectileDirection = new THREE.Vector3;
   private pencilGun?: THREE.Group;
@@ -218,6 +221,12 @@ export default class landingScene extends THREE.Scene {
     this.camera.position.z=pencilGun.position.z;
     this.camera.position.add(cameraOffset);
 
+
+    // audio effects
+    const listener = new THREE.AudioListener();
+    this.camera.add( listener );
+
+    this.sound = new THREE.Audio( listener );
 
     //listeners for user input
     document.addEventListener("keydown", this.handleKeyDown);
@@ -431,9 +440,7 @@ export default class landingScene extends THREE.Scene {
     if(this.proj && this.pencilGun){
       this.lifeLeft-=1;
       if(this.lifeLeft<=0){
-        this.shot=false;
-        this.remove(this.proj); 
-        delete this.proj;
+        this.removePencil();
         return;
       }
       this.proj.position.add(this.projectileDirection);
@@ -441,10 +448,19 @@ export default class landingScene extends THREE.Scene {
   }
   private handlePencilCollisions(){
     if(this.proj){
+      const that = this;
       this.triggers.forEach((value:THREE.Mesh)=>{
-        if(value.position.distanceTo(this.proj!.position)<1){
+        if(this.proj &&value.position.distanceTo(this.proj.position)<1){
           if(value==this.solution){
             console.log("correct");
+            const audioLoader = new THREE.AudioLoader();
+            this.removePencil();
+            audioLoader.load( 'sounds/whipSound.wav', function( buffer ) {
+            	that.sound!.setBuffer( buffer );
+            	that.sound!.setLoop( false );
+            	that.sound!.setVolume( 0.5 );
+            	that.sound!.play();
+            });
             this.resetSquaresAndText();
             return;
           }
@@ -505,6 +521,14 @@ export default class landingScene extends THREE.Scene {
       value.position.copy(textOptions[index]);
       index+=1;
     })
+  }
+  private removePencil(){
+    if(this.proj){
+      this.shot=false;
+      this.remove(this.proj); 
+      delete this.proj;
+    }
+      
   }
   update() {
     this.updateInput();
