@@ -6,12 +6,26 @@ import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { mx_bits_to_01 } from "three/examples/jsm/nodes/materialx/lib/mx_noise.js";
 import { exit } from "process";
 
+import { OBJLoader } from "three/examples/jsm/Addons.js";
+import { MTLLoader } from "three/examples/jsm/Addons.js";
+import { M_PLUS_1 } from "next/font/google";
+import { create } from "domain";
+
+
 export default class landingScene extends THREE.Scene {
   private readonly keyDown = new Set<string>();
   private readonly camera: THREE.PerspectiveCamera;
   private directionVector = new THREE.Vector3();
   private readonly triggers = new Set<THREE.Mesh>();
   private readonly choices = new Set<THREE.Mesh>();
+  private readonly mtlLoader = new MTLLoader();
+  private readonly objLoader = new OBJLoader();
+  private solution?:THREE.Mesh;
+  private projectileDirection = new THREE.Vector3;
+  private pencilGun?: THREE.Group;
+  private proj?: THREE.Group;
+  private shot = false;
+  private lifeLeft=0;
   //@ts-expect-error
   private readonly handleObjectClick: (event: MouseEvent) => void;
   private clicked = false;
@@ -27,7 +41,7 @@ export default class landingScene extends THREE.Scene {
 
   }
 
-  initialize() {
+  async initialize() {
 
     // is there a way to minimize repeated code here for the 4 cubes?
     // look into either a class or a function
@@ -52,7 +66,7 @@ export default class landingScene extends THREE.Scene {
 			const textMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff});
 			const mesh = new THREE.Mesh( textGeo1, textMaterial );
       mesh.scale.set(0.001, 0.001, 0.001);
-			mesh.position.x = 23;
+			mesh.position.x = 22;
 			mesh.position.y = 0.25;
       mesh.position.z=-0.5;
       this.choices.add(mesh);
@@ -94,7 +108,7 @@ export default class landingScene extends THREE.Scene {
       mesh3.scale.set(0.001, 0.001, 0.001);
 			mesh3.position.x = 0.5;
 			mesh3.position.y = 0.25;
-      mesh3.position.z=23;
+      mesh3.position.z=22;
       this.choices.add(mesh3);
 			this.add( mesh3 );
 
@@ -114,7 +128,7 @@ export default class landingScene extends THREE.Scene {
       mesh4.scale.set(0.001, 0.001, 0.001);
 			mesh4.position.x = -0.5;
 			mesh4.position.y = 0.25;
-      mesh4.position.z=-23;
+      mesh4.position.z=-22;
       this.choices.add(mesh4);
 			this.add( mesh4 );
 
@@ -128,6 +142,7 @@ export default class landingScene extends THREE.Scene {
     cube.position.x = 0;
     this.add(cube);
     this.triggers.add(cube);
+    this.solution = cube;
 
 
     const material2 = new THREE.MeshBasicMaterial({ color: 0x0000ff });
@@ -170,6 +185,9 @@ export default class landingScene extends THREE.Scene {
 
     this.add(light);
     // Star generation Trig + loop
+
+    const skylight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 10 );
+    this.add( skylight );
     const starMat = new THREE.MeshBasicMaterial({color:0xffffff})
     const starGeometry = new THREE.SphereGeometry();
     let radius = 400;
@@ -188,6 +206,18 @@ export default class landingScene extends THREE.Scene {
       newStar.position.set(x, y, z); // Set position
       this.add(newStar); // Assuming 'scene' is your THREE.Scene
     }
+
+    //pencil gun
+    
+    const pencilGun = await this.createPencil();
+    this.pencilGun = pencilGun;
+    this.add(pencilGun);
+    let cameraOffset = new THREE.Vector3(0,0.65,1);
+    this.camera.position.x=pencilGun.position.x;
+    this.camera.position.y=pencilGun.position.y;
+    this.camera.position.z=pencilGun.position.z;
+    this.camera.position.add(cameraOffset);
+
 
     //listeners for user input
     document.addEventListener("keydown", this.handleKeyDown);
@@ -217,18 +247,29 @@ export default class landingScene extends THREE.Scene {
 
     // camera rotation 4 directions
     if (this.keyDown.has("arrowleft")) {
-      this.camera.rotateY(0.1);
+      this.camera.rotateY(0.04);
     }
     if (this.keyDown.has("arrowright")) {
-      this.camera.rotateY(-0.1);
+      this.camera.rotateY(-0.04);
+
     }
     if (this.keyDown.has("arrowdown")) {
       this.camera.rotateX(-0.02);
+
     }
     if (this.keyDown.has("arrowup")) {
       this.camera.rotateX(0.02);
-    }
 
+    }
+    if (this.keyDown.has(" ")&&this.shot==false){
+      this.shot=true;
+      const projPencil = this.createPencilProj();
+
+      const cameraDirection = new THREE.Vector3(0, 0, 1);
+      cameraDirection.applyQuaternion(this.camera.quaternion);
+      this.projectileDirection = cameraDirection;
+
+    }
     // simulate a ray with endpoint my position and direction cameradirection to emulate 
     // focusing on the center of the mouse
     const dir = this.directionVector;
@@ -238,7 +279,7 @@ export default class landingScene extends THREE.Scene {
     const speed = 0.25;
     
     // Currently experimenting with locked position
-    
+    /*
     if (this.keyDown.has("w")) {
       this.camera.position.add(dir.clone().multiplyScalar(speed));
     }
@@ -259,7 +300,9 @@ export default class landingScene extends THREE.Scene {
           .multiplyScalar(speed),
       );
     }
+    */
   }
+  
   // ignore this error for now, component compiles I will fix later
   //@ts-expect-error
   private handleObjectClick = (event: MouseEvent) => {
@@ -289,9 +332,9 @@ export default class landingScene extends THREE.Scene {
   };
   private updateSquares(){
     this.triggers.forEach((value:THREE.Mesh)=>{
-      value.rotation.x+=0.02;
-      value.rotation.y+=0.02;
-      value.rotation.z+=0.02;
+      //value.rotation.x+=0.02;
+      //value.rotation.y+=0.02;
+      //value.rotation.z+=0.02;
     })
   }
 
@@ -304,7 +347,7 @@ export default class landingScene extends THREE.Scene {
   }
 
   private moveSquaresAndTexts(){
-    let speed = 0.005;
+    let speed = 0.001;
     this.choices.forEach((value:THREE.Mesh)=>{
       const dir = new THREE.Vector3().subVectors(this.camera.position, value.position);    
       value.position.add(dir.clone().multiplyScalar(speed));
@@ -324,10 +367,152 @@ export default class landingScene extends THREE.Scene {
 
     })
   }
+
+  private async createPencil(){
+
+    const mtl = await this.mtlLoader.loadAsync('assets/pencil.mtl');
+    mtl.preload();
+
+    this.objLoader.setMaterials(mtl);
+
+    const modelRoot = await this.objLoader.loadAsync('assets/pencil.obj');
+
+    modelRoot.rotateX(Math.PI * -0.35)
+
+    modelRoot.scale.set(0.05,0.05,0.05);
+    return modelRoot;
+  }
+  private async updatePencil(){
+    if (!this.pencilGun || !this.camera) {
+      return;
+    }   
+    
+    // Calculate the camera's forward direction
+    const cameraDirection = new THREE.Vector3(0, 0, 1);
+    cameraDirection.applyQuaternion(this.camera.quaternion);
+
+    // Calculate the offset based on the camera's direction and a predefined distance
+    const offsetDistance = 1; // Adjust the distance as needed
+    const cameraOffset = cameraDirection.clone().multiplyScalar(-offsetDistance);
+
+    // Set the pencilGun's position to be behind the camera
+    const pencilPosition = this.camera.position.clone().add(cameraOffset);
+    pencilPosition.y-=0.5;
+    this.pencilGun.position.copy(pencilPosition);
+
+
+    // Adjust the rotation of the pencilGun to match the camera's rotation
+    this.pencilGun.rotation.copy(this.camera.rotation);
+    this.pencilGun.rotateX(Math.PI * -0.35)
+
+  }
+  private async createPencilProj(){
+    if(this.pencilGun){
+      const proj = await this.createPencil();
+      proj.position.copy(this.pencilGun.position);
+      proj.rotation.copy(this.pencilGun.rotation);
+
+      proj.rotation.y=0;
+      this.lifeLeft=50;
+      this.add(proj);
+      this.proj = proj;
+
+      var dir = new THREE.Vector3(); // create once an reuse it
+      let startPos = this.camera.position.clone();
+      startPos.y-=0.5;
+
+      dir.subVectors(this.pencilGun?.position,startPos).normalize();
+      this.projectileDirection=dir;
+      console.log("pencil created");
+    }
+    
+  }
+  private updatePencilProj(){
+    if(this.proj && this.pencilGun){
+      this.lifeLeft-=1;
+      if(this.lifeLeft<=0){
+        this.shot=false;
+        this.remove(this.proj); 
+        delete this.proj;
+        return;
+      }
+      this.proj.position.add(this.projectileDirection);
+    }
+  }
+  private handlePencilCollisions(){
+    if(this.proj){
+      this.triggers.forEach((value:THREE.Mesh)=>{
+        if(value.position.distanceTo(this.proj!.position)<1){
+          if(value==this.solution){
+            console.log("correct");
+            this.resetSquaresAndText();
+            return;
+          }
+          else{
+            console.log('incorrect');
+            if (Array.isArray(value.material)) {
+              // If the material is an array, loop through each material
+              value.material.forEach((mat) => {
+                mat.transparent = true;
+                mat.opacity = 0; // Reset opacity to 1.0 (fully opaque)
+              });
+            } else {
+              // If the material is a single material
+              value.material.transparent = true;
+              value.material.opacity = 0; // Reset opacity to 1.0 (fully opaque)
+            }
+          }
+        }
+      })
+    }
+  }
+  private resetSquaresAndText(){
+    const options: THREE.Vector3[] = [
+      new THREE.Vector3(0, 0.25, -25),
+      new THREE.Vector3(0,0.25,25),
+      new THREE.Vector3(-25, 0.25, 0),
+      new THREE.Vector3(25,0.25,0),
+    ];
+    let index=0;
+    const randomNumber = Math.floor(Math.random() * 4);
+
+    this.triggers.forEach((value:THREE.Mesh)=>{
+      value.position.copy(options[index]);
+      if(index==randomNumber){
+        this.solution=value;
+      }
+      index+=1;
+      if (Array.isArray(value.material)) {
+        // If the material is an array, loop through each material
+        value.material.forEach((mat) => {
+          mat.transparent = false;
+          mat.opacity = 1.0; // Reset opacity to 1.0 (fully opaque)
+        });
+      } else {
+        // If the material is a single material
+        value.material.transparent = false;
+        value.material.opacity = 1.0; // Reset opacity to 1.0 (fully opaque)
+      }
+    })
+    const textOptions: THREE.Vector3[] = [
+      new THREE.Vector3(22, 0.25, -0.5),
+      new THREE.Vector3(-23,0.25,0.5),
+      new THREE.Vector3(0.5, 0.25, 22),
+      new THREE.Vector3(-0.5,0.25,-22),
+    ];
+    index=0
+    this.choices.forEach((value:THREE.Mesh)=>{
+      value.position.copy(textOptions[index]);
+      index+=1;
+    })
+  }
   update() {
     this.updateInput();
     this.updateSquares();
     this.updateTextRotation();
     this.moveSquaresAndTexts();
+    this.updatePencil();
+    this.updatePencilProj();
+    this.handlePencilCollisions();
   }
 }

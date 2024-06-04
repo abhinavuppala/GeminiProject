@@ -1,0 +1,52 @@
+# Blender MTL File: 'pencil.blend'
+# Material Count: 5
+
+newmtl EraserMaterial
+Ns 10.0          # Decreased shininess
+Ka 0.8 0.4 0.6   # Pinkish ambient color
+Kd 0.6 0.3 0.5   # Pinkish diffuse color
+Ks 0.1 0.1 0.1   # Low specular reflection
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.0
+illum 2
+
+newmtl MetalMaterial
+Ns 200.0         # Increased shininess
+Ka 0.1 0.1 0.1   # Dark gray ambient color
+Kd 0.3 0.3 0.3   # Dark gray diffuse color
+Ks 0.7 0.7 0.7   # High specular reflection
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.0
+illum 3
+
+newmtl Pencil
+Ns 10.0          # Decreased shininess
+Ka 1.0 1.0 0.8   # Yellowish ambient color
+Kd 0.8 0.6 0.1   # Yellowish diffuse color
+Ks 0.2 0.2 0.2   # Low specular reflection
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.0
+illum 2
+
+newmtl PencilWood
+Ns 10.0          # Decreased shininess
+Ka 0.6 0.4 0.2   # Brownish ambient color
+Kd 0.6 0.4 0.2   # Brownish diffuse color
+Ks 0.2 0.2 0.2   # Low specular reflection
+Ke 0.008073 0.008073 0.008073
+Ni 1.450000
+d 1.0
+illum 2
+
+newmtl pencilend
+Ns 100.0         # Moderate shininess
+Ka 0.05 0.05 0.05  # Dark gray ambient color
+Kd 0.1 0.1 0.1   # Dark gray diffuse color
+Ks 0.1 0.1 0.1   # Low specular reflection
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.0
+illum 2
