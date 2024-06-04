@@ -89,7 +89,10 @@ export default function Home() {
   }, [windowSize]);
 
   // callback function
-  const handleObjectClick = () => {
+  const handleObjectClick = (event: MouseEvent) => {
+    console.log("handleObjectClick triggered");
+    event.preventDefault(); // Prevent the default behavior
+    event.stopPropagation();
     router.push("/text");
   };
 

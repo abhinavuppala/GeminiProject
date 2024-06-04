@@ -4,6 +4,7 @@ import { useRouter } from "next/router"; // Import Next.js router
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { mx_bits_to_01 } from "three/examples/jsm/nodes/materialx/lib/mx_noise.js";
+import { exit } from "process";
 
 export default class landingScene extends THREE.Scene {
   private readonly keyDown = new Set<string>();
@@ -12,10 +13,10 @@ export default class landingScene extends THREE.Scene {
   private readonly triggers = new Set<THREE.Mesh>();
   private readonly choices = new Set<THREE.Mesh>();
   //@ts-expect-error
-  private readonly handleObjectClick: () => void; // Callback function type
+  private readonly handleObjectClick: (event: MouseEvent) => void;
+  private clicked = false;
 
-
-  constructor(camera: THREE.PerspectiveCamera, handleObjectClick: () => void) {
+  constructor(camera: THREE.PerspectiveCamera, handleObjectClick: (event:MouseEvent) => void) {
     super();
 
     this.camera = camera;
@@ -202,7 +203,7 @@ export default class landingScene extends THREE.Scene {
     this.keyDown.add(event.key.toLowerCase());
   };
 
-  // remove from my Set to prevent mem leaks
+  //   from my Set to prevent mem leaks
   private handleKeyUp = (event: KeyboardEvent) => {
     this.keyDown.delete(event.key.toLowerCase());
   };
@@ -262,6 +263,8 @@ export default class landingScene extends THREE.Scene {
   // ignore this error for now, component compiles I will fix later
   //@ts-expect-error
   private handleObjectClick = (event: MouseEvent) => {
+    document.removeEventListener("click", this.handleObjectClick);
+
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
@@ -310,9 +313,13 @@ export default class landingScene extends THREE.Scene {
       const dir = new THREE.Vector3().subVectors(this.camera.position, value.position);    
       value.position.add(dir.clone().multiplyScalar(speed));
       const distance = this.camera.position.distanceTo(value.position);
-      if(distance<1){
+
+      // clicked needed so it doesn't queue unlimited reroutes
+      if(distance<1 && this.clicked==false){
+        this.clicked=true;
         console.log('game over')
-        this.handleObjectClick();
+        this.handleObjectClick(new MouseEvent('click'));
+        exit;
       }
 
     })
