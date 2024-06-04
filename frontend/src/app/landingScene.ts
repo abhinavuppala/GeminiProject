@@ -1,8 +1,8 @@
 "use client";
 import * as THREE from "three";
 import { useRouter } from "next/router"; // Import Next.js router
-import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
-import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
+import { FontLoader } from "three/addons/loaders/FontLoader.js";
 import { mx_bits_to_01 } from "three/examples/jsm/nodes/materialx/lib/mx_noise.js";
 import { exit } from "process";
 
@@ -10,7 +10,6 @@ import { OBJLoader } from "three/examples/jsm/Addons.js";
 import { MTLLoader } from "three/examples/jsm/Addons.js";
 import { M_PLUS_1 } from "next/font/google";
 import { create } from "domain";
-
 
 export default class landingScene extends THREE.Scene {
   private readonly keyDown = new Set<string>();
@@ -23,38 +22,37 @@ export default class landingScene extends THREE.Scene {
   private readonly audioLoader = new THREE.AudioLoader();
   private sound?: THREE.Audio;
 
-  private solution?:THREE.Mesh;
-  private projectileDirection = new THREE.Vector3;
+  private solution?: THREE.Mesh;
+  private projectileDirection = new THREE.Vector3();
   private pencilGun?: THREE.Group;
   private proj?: THREE.Group;
   private shot = false;
-  private lifeLeft=0;
+  private lifeLeft = 0;
   //@ts-expect-error
   private readonly handleObjectClick: (event: MouseEvent) => void;
   private clicked = false;
 
-  constructor(camera: THREE.PerspectiveCamera, handleObjectClick: (event:MouseEvent) => void) {
+  constructor(
+    camera: THREE.PerspectiveCamera,
+    handleObjectClick: (event: MouseEvent) => void,
+  ) {
     super();
 
     this.camera = camera;
     this.triggers.clear();
-    this.choices.clear()
+    this.choices.clear();
 
     this.handleObjectClick = handleObjectClick; // Assign the callback function
-
   }
 
   async initialize() {
-
-    // is there a way to minimize repeated code here for the 4 cubes?
+    // is there a way to minimize repeated code here for the 4 cubes? 4 texts?
     // look into either a class or a function
     const targetPosition = new THREE.Vector3(0, 0, 0); // The target point to face towards
-    
+
     const loader = new FontLoader();
-    loader.load( '/fonts/helvetiker_regular.typeface.json',  ( font ) => {
-      
-
-      const textGeo1 = new TextGeometry( 'Option 1', {
+    loader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
+      const textGeo1 = new TextGeometry("Option 1", {
         font: font,
         size: 200,
         depth: 5,
@@ -64,18 +62,17 @@ export default class landingScene extends THREE.Scene {
         bevelSize: 8,
         bevelOffset: 0,
         bevelSegments: 5,
-
-      } );
-			const textMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff});
-			const mesh = new THREE.Mesh( textGeo1, textMaterial );
+      });
+      const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const mesh = new THREE.Mesh(textGeo1, textMaterial);
       mesh.scale.set(0.001, 0.001, 0.001);
-			mesh.position.x = 22;
-			mesh.position.y = 0.25;
-      mesh.position.z=-0.5;
+      mesh.position.x = 22;
+      mesh.position.y = 0.25;
+      mesh.position.z = -0.5;
       this.choices.add(mesh);
-			this.add( mesh );
+      this.add(mesh);
 
-      const textGeo2 = new TextGeometry( 'Option 2', {
+      const textGeo2 = new TextGeometry("Option 2", {
         font: font,
         size: 200,
         depth: 5,
@@ -85,17 +82,16 @@ export default class landingScene extends THREE.Scene {
         bevelSize: 8,
         bevelOffset: 0,
         bevelSegments: 5,
-
-      } );
-			const mesh2 = new THREE.Mesh( textGeo2, textMaterial );
+      });
+      const mesh2 = new THREE.Mesh(textGeo2, textMaterial);
       mesh2.scale.set(0.001, 0.001, 0.001);
-			mesh2.position.x = -23;
-			mesh2.position.y = 0.25;
-      mesh2.position.z=0.5;
+      mesh2.position.x = -23;
+      mesh2.position.y = 0.25;
+      mesh2.position.z = 0.5;
       this.choices.add(mesh2);
-			this.add( mesh2 );
+      this.add(mesh2);
 
-      const textGeo3 = new TextGeometry( 'Option 3', {
+      const textGeo3 = new TextGeometry("Option 3", {
         font: font,
         size: 200,
         depth: 5,
@@ -105,17 +101,16 @@ export default class landingScene extends THREE.Scene {
         bevelSize: 8,
         bevelOffset: 0,
         bevelSegments: 5,
-
-      } );
-			const mesh3 = new THREE.Mesh( textGeo3, textMaterial );
+      });
+      const mesh3 = new THREE.Mesh(textGeo3, textMaterial);
       mesh3.scale.set(0.001, 0.001, 0.001);
-			mesh3.position.x = 0.5;
-			mesh3.position.y = 0.25;
-      mesh3.position.z=22;
+      mesh3.position.x = 0.5;
+      mesh3.position.y = 0.25;
+      mesh3.position.z = 22;
       this.choices.add(mesh3);
-			this.add( mesh3 );
+      this.add(mesh3);
 
-      const textGeo4 = new TextGeometry( 'Option 4', {
+      const textGeo4 = new TextGeometry("Option 4", {
         font: font,
         size: 200,
         depth: 5,
@@ -125,19 +120,17 @@ export default class landingScene extends THREE.Scene {
         bevelSize: 8,
         bevelOffset: 0,
         bevelSegments: 5,
-
-      } );
-			const mesh4 = new THREE.Mesh( textGeo4, textMaterial );
+      });
+      const mesh4 = new THREE.Mesh(textGeo4, textMaterial);
       mesh4.scale.set(0.001, 0.001, 0.001);
-			mesh4.position.x = -0.5;
-			mesh4.position.y = 0.25;
-      mesh4.position.z=-22;
+      mesh4.position.x = -0.5;
+      mesh4.position.y = 0.25;
+      mesh4.position.z = -22;
       this.choices.add(mesh4);
-			this.add( mesh4 );
+      this.add(mesh4);
+    });
 
-    } );
-
-    const geometry = new THREE.BoxGeometry();   
+    const geometry = new THREE.BoxGeometry();
     const material = new THREE.MeshBasicMaterial({ color: 0xff00ff });
     const cube = new THREE.Mesh(geometry, material);
     cube.position.z = -25;
@@ -146,7 +139,6 @@ export default class landingScene extends THREE.Scene {
     this.add(cube);
     this.triggers.add(cube);
     this.solution = cube;
-
 
     const material2 = new THREE.MeshBasicMaterial({ color: 0x0000ff });
     const cube2 = new THREE.Mesh(geometry, material2);
@@ -173,25 +165,25 @@ export default class landingScene extends THREE.Scene {
     this.triggers.add(cube4);
 
     //center pad
-    const padMat = new THREE.MeshBasicMaterial({color: 0xff0000})
-    const padGeometry = new THREE.CylinderGeometry(0.75,0.75,0.1,32);
+    const padMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const padGeometry = new THREE.CylinderGeometry(0.75, 0.75, 0.1, 32);
 
-    const landPad = new THREE.Mesh(padGeometry,padMat);
-    landPad.position.x=0;
-    landPad.position.y=-1;
-    landPad.position.z=0;
+    const landPad = new THREE.Mesh(padGeometry, padMat);
+    landPad.position.x = 0;
+    landPad.position.y = -1;
+    landPad.position.z = 0;
     this.add(landPad);
 
-    //light for center pad 
-    const light = new THREE.PointLight( 0xff0000, 1, 100 );
-    light.position.set(0,0,-1);
+    //light for center pad
+    const light = new THREE.PointLight(0xff0000, 1, 100);
+    light.position.set(0, 0, -1);
 
     this.add(light);
     // Star generation Trig + loop
 
-    const skylight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 10 );
-    this.add( skylight );
-    const starMat = new THREE.MeshBasicMaterial({color:0xffffff})
+    const skylight = new THREE.HemisphereLight(0xffffff, 0xffffff, 10);
+    this.add(skylight);
+    const starMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const starGeometry = new THREE.SphereGeometry();
     let radius = 400;
     let i = 0;
@@ -199,34 +191,33 @@ export default class landingScene extends THREE.Scene {
       // Generate random spherical coordinates
       const theta = Math.random() * Math.PI * 2; // Azimuthal angle
       const phi = Math.acos(Math.random() * 2 - 1); // Polar angle
-    
+
       // Convert spherical coordinates to Cartesian coordinates
       const x = radius * Math.sin(phi) * Math.cos(theta);
       const y = radius * Math.sin(phi) * Math.sin(theta);
       const z = radius * Math.cos(phi);
-    
+
       let newStar = new THREE.Mesh(starGeometry, starMat);
       newStar.position.set(x, y, z); // Set position
       this.add(newStar); // Assuming 'scene' is your THREE.Scene
     }
 
     //pencil gun
-    
+
     const pencilGun = await this.createPencil();
     this.pencilGun = pencilGun;
     this.add(pencilGun);
-    let cameraOffset = new THREE.Vector3(0,0.65,1);
-    this.camera.position.x=pencilGun.position.x;
-    this.camera.position.y=pencilGun.position.y;
-    this.camera.position.z=pencilGun.position.z;
+    let cameraOffset = new THREE.Vector3(0, 0.65, 1);
+    this.camera.position.x = pencilGun.position.x;
+    this.camera.position.y = pencilGun.position.y;
+    this.camera.position.z = pencilGun.position.z;
     this.camera.position.add(cameraOffset);
-
 
     // audio effects
     const listener = new THREE.AudioListener();
-    this.camera.add( listener );
+    this.camera.add(listener);
 
-    this.sound = new THREE.Audio( listener );
+    this.sound = new THREE.Audio(listener);
 
     //listeners for user input
     document.addEventListener("keydown", this.handleKeyDown);
@@ -234,7 +225,6 @@ export default class landingScene extends THREE.Scene {
 
     const canvas = document.getElementById("app") as HTMLCanvasElement;
     canvas.addEventListener("click", this.handleObjectClick);
-
   }
 
   // add to my Set
@@ -260,33 +250,29 @@ export default class landingScene extends THREE.Scene {
     }
     if (this.keyDown.has("arrowright")) {
       this.camera.rotateY(-0.04);
-
     }
     if (this.keyDown.has("arrowdown")) {
       this.camera.rotateX(-0.02);
-
     }
     if (this.keyDown.has("arrowup")) {
       this.camera.rotateX(0.02);
-
     }
-    if (this.keyDown.has(" ")&&this.shot==false){
-      this.shot=true;
+    if (this.keyDown.has(" ") && this.shot == false) {
+      this.shot = true;
       const projPencil = this.createPencilProj();
 
       const cameraDirection = new THREE.Vector3(0, 0, 1);
       cameraDirection.applyQuaternion(this.camera.quaternion);
       this.projectileDirection = cameraDirection;
-
     }
-    // simulate a ray with endpoint my position and direction cameradirection to emulate 
+    // simulate a ray with endpoint my position and direction cameradirection to emulate
     // focusing on the center of the mouse
     const dir = this.directionVector;
 
     this.camera.getWorldDirection(dir);
 
     const speed = 0.25;
-    
+
     // Currently experimenting with locked position
     /*
     if (this.keyDown.has("w")) {
@@ -311,7 +297,7 @@ export default class landingScene extends THREE.Scene {
     }
     */
   }
-  
+
   // ignore this error for now, component compiles I will fix later
   //@ts-expect-error
   private handleObjectClick = (event: MouseEvent) => {
@@ -339,133 +325,141 @@ export default class landingScene extends THREE.Scene {
       router.push("/text"); // Replace '/new-page' with the path of the page you want to navigate to
     }
   };
-  private updateSquares(){
-    this.triggers.forEach((value:THREE.Mesh)=>{
+  private updateSquares() {
+    this.triggers.forEach((value: THREE.Mesh) => {
       //value.rotation.x+=0.02;
       //value.rotation.y+=0.02;
       //value.rotation.z+=0.02;
-    })
+    });
   }
 
   private updateTextRotation() {
-    this.choices.forEach((value:THREE.Mesh)=>{
-      const direction = new THREE.Vector3().subVectors(this.camera.position, value.position);    
+    this.choices.forEach((value: THREE.Mesh) => {
+      const direction = new THREE.Vector3().subVectors(
+        this.camera.position,
+        value.position,
+      );
       // quaternion is calc concept relating to essentially a 3d rotation
-      value.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction.normalize());
-    })
+      value.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, 0, 1),
+        direction.normalize(),
+      );
+    });
   }
 
-  private moveSquaresAndTexts(){
+  private moveSquaresAndTexts() {
     let speed = 0.001;
-    this.choices.forEach((value:THREE.Mesh)=>{
-      const dir = new THREE.Vector3().subVectors(this.camera.position, value.position);    
+    this.choices.forEach((value: THREE.Mesh) => {
+      const dir = new THREE.Vector3().subVectors(
+        this.camera.position,
+        value.position,
+      );
       value.position.add(dir.clone().multiplyScalar(speed));
-    })
-    this.triggers.forEach((value:THREE.Mesh)=>{
-      const dir = new THREE.Vector3().subVectors(this.camera.position, value.position);    
+    });
+    this.triggers.forEach((value: THREE.Mesh) => {
+      const dir = new THREE.Vector3().subVectors(
+        this.camera.position,
+        value.position,
+      );
       value.position.add(dir.clone().multiplyScalar(speed));
       const distance = this.camera.position.distanceTo(value.position);
 
       // clicked needed so it doesn't queue unlimited reroutes
-      if(distance<1 && this.clicked==false){
-        this.clicked=true;
-        console.log('game over')
-        this.handleObjectClick(new MouseEvent('click'));
+      if (distance < 1 && this.clicked == false) {
+        this.clicked = true;
+        console.log("game over");
+        this.handleObjectClick(new MouseEvent("click"));
         exit;
       }
-
-    })
+    });
   }
 
-  private async createPencil(){
-
-    const mtl = await this.mtlLoader.loadAsync('assets/pencil.mtl');
+  private async createPencil() {
+    const mtl = await this.mtlLoader.loadAsync("assets/pencil.mtl");
     mtl.preload();
 
     this.objLoader.setMaterials(mtl);
 
-    const modelRoot = await this.objLoader.loadAsync('assets/pencil.obj');
+    const modelRoot = await this.objLoader.loadAsync("assets/pencil.obj");
 
-    modelRoot.rotateX(Math.PI * -0.35)
+    modelRoot.rotateX(Math.PI * -0.35);
 
-    modelRoot.scale.set(0.05,0.05,0.05);
+    modelRoot.scale.set(0.05, 0.05, 0.05);
     return modelRoot;
   }
-  private async updatePencil(){
+  private async updatePencil() {
     if (!this.pencilGun || !this.camera) {
       return;
-    }   
-    
+    }
+
     // Calculate the camera's forward direction
     const cameraDirection = new THREE.Vector3(0, 0, 1);
     cameraDirection.applyQuaternion(this.camera.quaternion);
 
     // Calculate the offset based on the camera's direction and a predefined distance
     const offsetDistance = 1; // Adjust the distance as needed
-    const cameraOffset = cameraDirection.clone().multiplyScalar(-offsetDistance);
+    const cameraOffset = cameraDirection
+      .clone()
+      .multiplyScalar(-offsetDistance);
 
     // Set the pencilGun's position to be behind the camera
     const pencilPosition = this.camera.position.clone().add(cameraOffset);
-    pencilPosition.y-=0.5;
+    pencilPosition.y -= 0.5;
     this.pencilGun.position.copy(pencilPosition);
-
 
     // Adjust the rotation of the pencilGun to match the camera's rotation
     this.pencilGun.rotation.copy(this.camera.rotation);
-    this.pencilGun.rotateX(Math.PI * -0.35)
-
+    this.pencilGun.rotateX(Math.PI * -0.35);
   }
-  private async createPencilProj(){
-    if(this.pencilGun){
+  private async createPencilProj() {
+    if (this.pencilGun) {
       const proj = await this.createPencil();
       proj.position.copy(this.pencilGun.position);
       proj.rotation.copy(this.pencilGun.rotation);
 
-      proj.rotation.y=0;
-      this.lifeLeft=50;
+      proj.rotation.y = 0;
+      this.lifeLeft = 50;
       this.add(proj);
       this.proj = proj;
 
       var dir = new THREE.Vector3(); // create once an reuse it
       let startPos = this.camera.position.clone();
-      startPos.y-=0.5;
+      startPos.y -= 0.5;
 
-      dir.subVectors(this.pencilGun?.position,startPos).normalize();
-      this.projectileDirection=dir;
+      dir.subVectors(this.pencilGun?.position, startPos).normalize();
+      this.projectileDirection = dir;
       console.log("pencil created");
     }
-    
   }
-  private updatePencilProj(){
-    if(this.proj && this.pencilGun){
-      this.lifeLeft-=1;
-      if(this.lifeLeft<=0){
+  private updatePencilProj() {
+    if (this.proj && this.pencilGun) {
+      this.lifeLeft -= 1;
+      if (this.lifeLeft <= 0) {
         this.removePencil();
         return;
       }
       this.proj.position.add(this.projectileDirection);
     }
   }
-  private handlePencilCollisions(){
-    if(this.proj){
+  private handlePencilCollisions() {
+    if (this.proj) {
       const that = this;
-      this.triggers.forEach((value:THREE.Mesh)=>{
-        if(this.proj &&value.position.distanceTo(this.proj.position)<1){
-          if(value==this.solution){
+      this.triggers.forEach((value: THREE.Mesh) => {
+        if (this.proj && value.position.distanceTo(this.proj.position) < 1) {
+          if (value == this.solution) {
             console.log("correct");
             const audioLoader = new THREE.AudioLoader();
             this.removePencil();
-            audioLoader.load( 'sounds/whipSound.wav', function( buffer ) {
-            	that.sound!.setBuffer( buffer );
-            	that.sound!.setLoop( false );
-            	that.sound!.setVolume( 0.5 );
-            	that.sound!.play();
+            audioLoader.load("sounds/whipSound.wav", function (buffer) {
+              that.sound!.setBuffer(buffer);
+              that.sound!.setLoop(false);
+              that.sound!.setVolume(0.5);
+              that.sound!.play();
             });
             this.resetSquaresAndText();
             return;
-          }
-          else{
-            console.log('incorrect');
+          } else {
+            console.log("incorrect");
             if (Array.isArray(value.material)) {
               // If the material is an array, loop through each material
               value.material.forEach((mat) => {
@@ -479,25 +473,25 @@ export default class landingScene extends THREE.Scene {
             }
           }
         }
-      })
+      });
     }
   }
-  private resetSquaresAndText(){
+  private resetSquaresAndText() {
     const options: THREE.Vector3[] = [
       new THREE.Vector3(0, 0.25, -25),
-      new THREE.Vector3(0,0.25,25),
+      new THREE.Vector3(0, 0.25, 25),
       new THREE.Vector3(-25, 0.25, 0),
-      new THREE.Vector3(25,0.25,0),
+      new THREE.Vector3(25, 0.25, 0),
     ];
-    let index=0;
+    let index = 0;
     const randomNumber = Math.floor(Math.random() * 4);
 
-    this.triggers.forEach((value:THREE.Mesh)=>{
+    this.triggers.forEach((value: THREE.Mesh) => {
       value.position.copy(options[index]);
-      if(index==randomNumber){
-        this.solution=value;
+      if (index == randomNumber) {
+        this.solution = value;
       }
-      index+=1;
+      index += 1;
       if (Array.isArray(value.material)) {
         // If the material is an array, loop through each material
         value.material.forEach((mat) => {
@@ -509,26 +503,25 @@ export default class landingScene extends THREE.Scene {
         value.material.transparent = false;
         value.material.opacity = 1.0; // Reset opacity to 1.0 (fully opaque)
       }
-    })
+    });
     const textOptions: THREE.Vector3[] = [
       new THREE.Vector3(22, 0.25, -0.5),
-      new THREE.Vector3(-23,0.25,0.5),
+      new THREE.Vector3(-23, 0.25, 0.5),
       new THREE.Vector3(0.5, 0.25, 22),
-      new THREE.Vector3(-0.5,0.25,-22),
+      new THREE.Vector3(-0.5, 0.25, -22),
     ];
-    index=0
-    this.choices.forEach((value:THREE.Mesh)=>{
+    index = 0;
+    this.choices.forEach((value: THREE.Mesh) => {
       value.position.copy(textOptions[index]);
-      index+=1;
-    })
+      index += 1;
+    });
   }
-  private removePencil(){
-    if(this.proj){
-      this.shot=false;
-      this.remove(this.proj); 
+  private removePencil() {
+    if (this.proj) {
+      this.shot = false;
+      this.remove(this.proj);
       delete this.proj;
     }
-      
   }
   update() {
     this.updateInput();
